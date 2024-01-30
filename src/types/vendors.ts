@@ -1,3 +1,4 @@
 export enum Vendor {
-	OpenAI = "openai"
+	Midjourney = "midjourney",
+	OpenAI = "openai",
 }

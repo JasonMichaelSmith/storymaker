@@ -1,3 +1,4 @@
+import { SpeechParseObject } from "../types/vendors/openai";
 import { getFilename, mkdirSync } from "../utils/file";
 
 import dotenv from 'dotenv';
@@ -35,6 +36,6 @@ export async function gen(name: string, body?: Params, i = 0): Promise<void> {
 	await fs.promises.writeFile(speechFile, buffer);
 }
 
-export async function parse(name: string, input: Record<string, any>[]): Promise<void> {
-	await Promise.all(input.map(async (x: Record<string, any>, i: number) => await gen(name, x.body, i)));
+export async function generate(name: string, input: SpeechParseObject[]): Promise<void> {
+	await Promise.all(input.map(async (x: SpeechParseObject, i: number) => await gen(name, x.body, i)));
 }

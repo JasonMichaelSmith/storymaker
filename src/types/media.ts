@@ -1,3 +1,5 @@
 export enum Media {
-	Speech = "speech"
+	Speech = "speech",
+	Image = "image",
+	Video = "video",
 }

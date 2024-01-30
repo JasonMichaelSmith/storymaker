@@ -1,10 +1,29 @@
+import { Vendor, Media } from "../types";
 import { getMDMeta } from "../utils/md";
-import * as parsers from "../parsers";
 
-// TODO: parameterise openai as an option + default
-export const parse = (filename: string, type = "speech", vendor = "openai") => {
-	const input = getMDMeta(`./scripts/${filename}`);
-	return parsers.speech.openai.parse(input);
+import * as parsers from "../parsers";
+import * as speech from "../speech";
+
+export const parse = async (filename: string, voice: string, type = Media.Speech, vendor = Vendor.OpenAI): Promise<void> => {
+	const script = getMDMeta(`./scripts/${filename}`);
+
+	switch (type) {
+		default:
+		case Media.Speech: {
+			switch (vendor) {
+				default:
+				case Vendor.OpenAI:
+					const input = parsers.speech.openai.parse(script, voice);
+					await speech.openai.parse(filename, input);
+					break;
+			}
+		}
+	}
 }
 
-console.log(parse("cabin-in-the-woods.md"));
+const [, , filename = "sample1.md", voice = "onyx", type, vendor] = process.argv;
+
+/**
+ * @example `yarn scripts/parse sample2.md shimmer`.
+ */
+parse(filename, voice, type as Media, vendor as Vendor);

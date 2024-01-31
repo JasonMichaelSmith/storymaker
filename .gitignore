@@ -1,4 +1,6 @@
 node_modules
-dist
+inputs/video
+inputs/audio
 bin/*
+dist
 .env

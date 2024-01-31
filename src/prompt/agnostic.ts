@@ -1,5 +1,5 @@
-import { PromptParseObject } from "../types/vendors/midjourney";
 import { getFilename, mkdirSync } from "../utils/file";
+import { PromptParseObject } from "../types/prompt";
 import { func } from "../utils/html";
 
 import path from "path";
@@ -25,7 +25,9 @@ export async function generate(name: string, input: PromptParseObject[]): Promis
 	let html = "";
 
 	await Promise.all(input.map(async (x: PromptParseObject, i: number) => {
-		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.imagine}</p>`;
+		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.speech}</p>`;
+		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.visualise}</p>`;
+		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.animate}</p>`;
 	}));
 
 	html += func.copy;

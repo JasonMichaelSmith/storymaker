@@ -1,0 +1,1 @@
+export const listify = (value: string, separator = ","): string[] => value.split(separator);

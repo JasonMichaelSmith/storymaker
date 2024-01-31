@@ -22,6 +22,8 @@ const defaults = {
  * @param name Full filename + extension (e.g. "sample1.md").
  * @param body Body params.
  * @param i Index.
+ * 
+ * @see https://platform.openai.com/docs/guides/text-to-speech?lang=node
  */
 export async function gen(name: string, body?: Params, i = 0): Promise<void> {
 	const folder = mkdirSync(`./bin/speech/${getFilename(name)}`);

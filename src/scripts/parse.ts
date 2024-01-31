@@ -11,7 +11,7 @@ export const parse = async (
 	vendor = Vendor.OpenAI,
 	...args: string[]
 ): Promise<void> => {
-	const script = getMDMeta(`./scripts/${filename}`);
+	const script = getMDMeta(`./inputs/scripts/${filename}`);
 
 	switch (type) {
 		default:
@@ -35,8 +35,9 @@ export const parse = async (
 			switch (vendor) {
 				default:
 				case Vendor.Midjourney:
-					const input = parsers.prompt.midjourney.parse(script);
-					await prompt.midjourney.generate(filename, input);
+				case Vendor.OpenAI:
+					const input = parsers.prompt.agnostic.parse(script);
+					await prompt.agnostic.generate(filename, input);
 					break;
 			}
 		}

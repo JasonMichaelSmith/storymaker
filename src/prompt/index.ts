@@ -1,5 +1,5 @@
-import * as midjourney from "./midjourney";
+import * as agnostic from "./agnostic";
 
 export {
-	midjourney
+	agnostic
 }

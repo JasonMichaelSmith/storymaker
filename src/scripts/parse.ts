@@ -36,7 +36,7 @@ export const parse = async (
 				default:
 				case Vendor.Midjourney:
 				case Vendor.OpenAI:
-					const input = parsers.prompt.agnostic.parse(script);
+					const input = await parsers.prompt.agnostic.parse(script);
 					await prompt.agnostic.generate(filename, input);
 					break;
 			}
@@ -55,6 +55,6 @@ const [, , filename = "sample1.md", type, vendor, ...rest] = process.argv;
  * 
  * Prompt Examples
  * 
- * @example `yarn scripts/parse sample1.md prompt midjourney`.
+ * @example `yarn scripts/parse sample1.md prompt`.
  */
 parse(filename, type as any, vendor as Vendor, ...rest);

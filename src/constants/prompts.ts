@@ -1,21 +1,16 @@
-// TODO: move to types
-export enum Direction {
-	Backward = "backward",
-	Forward = "forward",
-	Around = "around",
-	Right = "right",
-	Left = "left",
-}
+import { Direction } from "../types/prompt"
 
 type AbioticDirection = {
 	[key in Direction]: string
 }
 
-export const prompts: {
+type Prompts = {
 	scene: {
 		make: {
 			abiotic: {
-				from: Record<string, any>
+				from: {
+					secondperson: string;
+				}
 			},
 			animated: {
 				from: {
@@ -26,12 +21,14 @@ export const prompts: {
 			}
 		},
 	}
-} = {
+}
+
+export const prompts: Prompts = {
 	scene: {
 		make: {
 			abiotic: {
 				from: {
-					secondperson: `just describe the scene without any reference to a person`
+					secondperson: `just describe this scene without a reference to a person`
 				}
 			},
 			animated: {
@@ -45,11 +42,13 @@ export const prompts: {
 							[Direction.Left]: `pan to the left of the image`,
 
 							reveal: (what: string | "nothing", direction: Direction) => {
+								const { scene: { make: { animated: { from } } } } = prompts;
+
 								switch (what) {
 									case "nothing":
-										return `${prompts.scene.make.animated.from.abiotic.move[direction]}, revealing more of the same`
+										return `${from.abiotic.move[direction]}, revealing more of the same`
 									default:
-										return `reveal a ${what} as we ${prompts.scene.make.animated.from.abiotic.move[direction]}`
+										return `reveal a ${what} as we ${from.abiotic.move[direction]}`
 								}
 							}
 						}

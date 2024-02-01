@@ -7,7 +7,6 @@ import fs from "fs";
 
 const styles = {
 	p: `
-		background-color: lightgrey;
 		font-family: Arial;
 		cursor: pointer;
 		padding: 10;
@@ -20,17 +19,17 @@ const styles = {
  */
 export async function generate(name: string, input: PromptParseObject[]): Promise<void> {
 	const folder = mkdirSync(`./bin/prompt/${getFilename(name)}`);
-	const promptFile = path.resolve(`${folder}/prompts.html`);
+	const file = path.resolve(`${folder}/prompts.html`);
 
 	let html = "";
 
 	await Promise.all(input.map(async (x: PromptParseObject, i: number) => {
-		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.speech}</p>`;
-		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.visualise}</p>`;
-		html += `<p id="${i}" style="${styles.p}" onclick="copy('${i}')">${x.animate}</p>`;
+		html += `<p id="${i}" style="${styles.p} background-color: lightgrey;" onclick="copy('${i}')">${x.speech}</p>`;
+		html += `<p id="${i}" style="${styles.p} background-color: lightblue;" onclick="copy('${i}')">${x.visualise}</p>`;
+		html += `<p id="${i}" style="${styles.p} background-color: lightgreen;" onclick="copy('${i}')">${x.animate}</p>`;
 	}));
 
 	html += func.copy;
 
-	await fs.promises.writeFile(promptFile, html);
+	await fs.promises.writeFile(file, html);
 }

@@ -12,3 +12,16 @@ export type PromptParseObject = {
 	 */
 	animate: string,
 }
+
+export enum Direction {
+	Backward = "backward",
+	Forward = "forward",
+	Around = "around",
+	Right = "right",
+	Left = "left",
+}
+
+export enum AnimationPromptType {
+	WithImage = "withimage",
+	FromScratch = "fromscratch",
+}

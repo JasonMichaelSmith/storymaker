@@ -1,14 +1,11 @@
 import { SpeechParseObject } from "../types/vendors/openai";
 import { getFilename, mkdirSync } from "../utils/file";
 
-import dotenv from 'dotenv';
+import openai from "../vendors/openai";
+
 import OpenAI from "openai";
 import path from "path";
 import fs from "fs";
-
-dotenv.config();
-
-const openai = new OpenAI({ apiKey: process.env.API_KEY });
 
 type Params = OpenAI.Audio.Speech.SpeechCreateParams;
 

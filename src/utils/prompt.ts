@@ -1,0 +1,1 @@
+export const transform = (request: string, value: string | number): string => `${request}: ${value}`;

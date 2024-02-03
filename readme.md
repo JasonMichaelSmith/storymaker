@@ -1,9 +1,10 @@
 # Getting Started
 
 - Run `yarn install`
+- Get `ffmpeg` (https://ffmpeg.org/) or use `brew install ffmpeg` for macOS
 
-## Run Tool
+# Building Your First Story
 
-### Text to Speech
+Let's complete one of the sample stories from start to finish to get a feel for the core elements:
 
-- Run `node speech`
+TODO

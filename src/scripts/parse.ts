@@ -22,7 +22,7 @@ export const parse = async (
 					const voice = args[0];
 					const input = parsers.speech.openai.parse(script, voice);
 					await speech.openai.generate(filename, input);
-					break;
+					return;
 			}
 		}
 		case Media.Image: {
@@ -36,9 +36,9 @@ export const parse = async (
 				default:
 				case Vendor.Midjourney:
 				case Vendor.OpenAI:
-					const input = await parsers.prompt.agnostic.parse(script);
+					const input = await parsers.prompt.agnostic.parse(filename, script);
 					await prompt.agnostic.generate(filename, input);
-					break;
+					return;
 			}
 		}
 	}

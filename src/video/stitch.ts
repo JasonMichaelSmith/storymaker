@@ -1,9 +1,9 @@
-import { readdir } from "../utils/file";
+import { mkdirSync, readdir } from "../utils/file";
 import { listify } from "../utils/misc";
 import { log, error } from "console";
-import ffmpeg from "fluent-ffmpeg";
 
-const outdir = `./bin/stitched`;
+import ffmpeg from "fluent-ffmpeg";
+import path from "path";
 
 const indir = {
 	video: './inputs/video',
@@ -13,6 +13,8 @@ const indir = {
 /**
  * @warning You *also* need to install the `ffmpeg` executable which the `fluent-ffmpeg` wraps
  * 			(e.g. `brew install ffmpeg` on macOS or "https://ffmpeg.org/download.html" for Windows).
+ * 
+ * @warning Every video has to be *exactly* the same size, frame rate, and ideally, the same initial codec too.
  */
 export const stitch = async (
 	indices?: string,
@@ -20,19 +22,22 @@ export const stitch = async (
 	videoCodec = "libx264",
 	unify = true
 ): Promise<void> => {
-	const video = await readdir(indir.video, ["mp4"]);
-	const audio = await readdir(indir.audio, ["mp3"]);
+	const folder = mkdirSync(`./bin/stitched`);
+
+	const video: string[] = await readdir(indir.video, ["mp4"]);
+	const audio: string[] = await readdir(indir.audio, ["mp3"]);
 
 	const scenes: string[] = [];
+
 	const targets = indices && listify(indices);
 
 	await Promise.all(video.map(async (_, i) =>
 		new Promise<void>((resolve, reject) => {
-			const output = `${outdir}/output-${i}.mp4`;
+			const output = path.resolve(`${folder}/output-${i}.mp4`);
 			scenes.push(output);
 
 			// Skip any indices not specifically requested
-			if (!targets?.includes(i.toString())) {
+			if (targets && !targets.includes(i.toString())) {
 				resolve();
 				return;
 			}
@@ -62,7 +67,7 @@ export const stitch = async (
 		ffmpegcmd
 			.audioCodec(audioCodec)
 			.videoCodec(videoCodec)
-			.mergeToFile(`${outdir}/output-final.mp4`, './tmp')
+			.mergeToFile(`${folder}/output-final.mp4`, './tmp')
 			.on('end', () => log('unified'))
 			.on('error', (err, stdout, stderr) => {
 				error('unifying files:', err);

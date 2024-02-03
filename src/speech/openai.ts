@@ -1,5 +1,6 @@
 import { SpeechParseObject } from "../types/vendors/openai";
 import { getFilename, mkdirSync } from "../utils/file";
+import { log } from "console";
 
 import openai from "../vendors/openai";
 
@@ -33,6 +34,8 @@ export async function gen(name: string, body?: Params, i = 0): Promise<void> {
 
 	const buffer = Buffer.from(await mp3.arrayBuffer());
 	await fs.promises.writeFile(speechFile, buffer);
+
+	log(`${name} scene ${i} speech openai done`);
 }
 
 export async function generate(name: string, input: SpeechParseObject[]): Promise<void> {

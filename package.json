@@ -7,6 +7,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"scripts/parse": "node dist/scripts/parse",
 		"video/stitch": "node dist/video/stitch",
+		"prompt/agnostic": "node dist/prompt/agnostic",
 		"build": "tsc"
 	},
 	"keywords": [],

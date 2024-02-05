@@ -1,9 +1,12 @@
+import { getFilename, getJSON } from "../utils/file";
 import { Vendor, Media, Paradigm } from "../types";
+import { JSONPromptData } from "../types/json";
 import { getMDMeta } from "../utils/md";
 
 import * as parsers from "../parsers";
 import * as speech from "../speech";
 import * as prompt from "../prompt";
+import * as bridge from "../bridge";
 
 export const parse = async (
 	filename: string,
@@ -26,7 +29,14 @@ export const parse = async (
 			}
 		}
 		case Media.Image: {
-			// TBD: this would pass the script into images
+			switch (vendor) {
+				// You'll need to run the prompt paradigm first so this JSON actually exists (see "Prompt Examples")
+				default:
+				case Vendor.Midjourney:
+					const prompts = getJSON(`./bin/prompt/${getFilename(filename)}/prompts.json`);
+					await bridge.goapi.generate(getFilename(filename), prompts as JSONPromptData);
+					return;
+			}
 		}
 		case Media.Video: {
 			// TBD: this would pass the script into video scenes
@@ -37,7 +47,7 @@ export const parse = async (
 				case Vendor.Midjourney:
 				case Vendor.OpenAI:
 					const input = await parsers.prompt.agnostic.parse(filename, script);
-					await prompt.agnostic.generate(filename, input);
+					await prompt.agnostic.generate(getFilename(filename), input);
 					return;
 			}
 		}
@@ -56,5 +66,9 @@ const [, , filename = "sample1.md", type, vendor, ...rest] = process.argv;
  * Prompt Examples
  * 
  * @example `yarn scripts/parse sample1.md prompt`.
+ * 
+ * Image Examples
+ * 
+ * @example `yarn scripts/parse sample1.md image`.
  */
 parse(filename, type as any, vendor as Vendor, ...rest);

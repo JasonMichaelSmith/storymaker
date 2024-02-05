@@ -1,5 +1,6 @@
 import { SpeechParseObject } from "../types/vendors/openai";
 import { getFilename, mkdirSync } from "../utils/file";
+import { Media } from "../types";
 import { log } from "console";
 
 import openai from "../vendors/openai";
@@ -24,8 +25,8 @@ const defaults = {
  * @see https://platform.openai.com/docs/guides/text-to-speech?lang=node
  */
 export async function gen(name: string, body?: Params, i = 0): Promise<void> {
-	const folder = mkdirSync(`./bin/speech/${getFilename(name)}`);
-	const speechFile = path.resolve(`${folder}/speech-${i}.mp3`);
+	const folder = mkdirSync(`./bin/${Media.Speech}/${getFilename(name)}`);
+	const speechFile = path.resolve(`${folder}/${Media.Speech}-${i}.mp3`);
 
 	const mp3 = await openai.audio.speech.create({
 		...defaults,
@@ -35,7 +36,7 @@ export async function gen(name: string, body?: Params, i = 0): Promise<void> {
 	const buffer = Buffer.from(await mp3.arrayBuffer());
 	await fs.promises.writeFile(speechFile, buffer);
 
-	log(`${name} scene ${i} speech openai done`);
+	log(`${name} scene ${i} ${Media.Speech} openai done`);
 }
 
 export async function generate(name: string, input: SpeechParseObject[]): Promise<void> {

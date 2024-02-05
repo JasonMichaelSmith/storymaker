@@ -42,6 +42,7 @@ export const parse = async (name: string, items: ParseItem[]): Promise<PromptPar
 				// Generate animate prompt with openai
 				const animate = await getAnimPrompt(speech, anim_type);
 
+				// Log completion per scene
 				log(`${name} scene ${i} prompt agnostic done`);
 
 				i++;

@@ -17,3 +17,5 @@ export const secondsToHHMMSS = (seconds: number): string => {
 };
 
 export const roundUp = (value: number | undefined, factor = 4): number => Math.ceil((value || 0) / factor) * factor;
+
+export const truncate = (copy: string, max = 15): string => copy.length <= max ? copy : copy.slice(0, max) + "...";

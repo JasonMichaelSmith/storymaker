@@ -9,3 +9,8 @@
 Let's complete one of the sample stories from start to finish to get a feel for the core elements:
 
 TODO
+
+# Checking API Credits
+
+- OpenAI: https://platform.openai.com/usage
+- GoAPI: https://dashboard.goapi.ai/

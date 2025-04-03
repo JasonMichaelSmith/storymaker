@@ -6,3 +6,8 @@ export enum TaskStatus {
 	Failed = "failed", // The task execution failed
 	Retry = "retry", // The task is waiting in the queue to be retried
 }
+
+export enum Upscale {
+	Creative = "creative",
+	Subtle = "subtle",
+}

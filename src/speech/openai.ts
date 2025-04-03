@@ -1,6 +1,6 @@
 import { SpeechParseObject } from "../types/vendors/openai";
 import { getFilename, mkdirSync } from "../utils/file";
-import { Media } from "../types";
+import { Media, Vendor } from "../types";
 import { log } from "console";
 
 import openai from "../vendors/openai";
@@ -11,6 +11,10 @@ import fs from "fs";
 
 type Params = OpenAI.Audio.Speech.SpeechCreateParams;
 
+/**
+ * @warning using `response_format: "aac"` made the speech worse; there was extra trailing and "click" sounds at
+ * 			the end of the audio, and ffmpeg couldn't always accurately gauge the duration for the audio fade-off.
+ */
 const defaults = {
 	model: "tts-1",
 	voice: "onyx",
@@ -36,9 +40,11 @@ export async function gen(name: string, body?: Params, i = 0): Promise<void> {
 	const buffer = Buffer.from(await mp3.arrayBuffer());
 	await fs.promises.writeFile(speechFile, buffer);
 
-	log(`${name} scene ${i} ${Media.Speech} openai done`);
+	log(`${name} scene ${i} ${Media.Speech} ${Vendor.OpenAI}  done`);
 }
 
 export async function generate(name: string, input: SpeechParseObject[]): Promise<void> {
-	await Promise.all(input.map(async (x: SpeechParseObject, i: number) => await gen(name, x.body, i)));
+	for (let i = 0; i < input.length; i++) {
+		await gen(name, input[i].body, i);
+	}
 }

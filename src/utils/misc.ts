@@ -1,4 +1,4 @@
-export const listify = (value: string, separator = ","): string[] => value.split(separator);
+export const listify = (value?: string, separator = ","): string[] | undefined => value?.split(separator);
 
 export const getRandomString = (size = 36, sub = 10) => Math.random().toString(size).substring(sub);
 
@@ -16,6 +16,12 @@ export const secondsToHHMMSS = (seconds: number): string => {
 	return `${fh}:${fm}:${fs}`;
 };
 
+export const mstosec = (ms: number) => ms / 1000;
+
 export const roundUp = (value: number | undefined, factor = 4): number => Math.ceil((value || 0) / factor) * factor;
 
-export const truncate = (copy: string, max = 15): string => copy.length <= max ? copy : copy.slice(0, max) + "...";
+export const truncate = (copy: string, max = 45): string => copy.length <= max ? copy : copy.slice(0, max) + "...";
+
+export const argsToString = (args: any[]): string => args.filter(Boolean).join(" ");
+
+export const sleep = async (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));

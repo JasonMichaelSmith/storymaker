@@ -1,15 +1,19 @@
-import type { TaskStatus } from "../types/midjourney";
+import { Upscale, type TaskStatus } from "../types/midjourney";
 import type { JSONPromptData } from "../types/json";
 
-import { getTaskResult } from "../utils/midjourney";
+import { genDefaultImagineArgs, getTaskResult } from "../utils/midjourney";
+import { openInBrowser, promptForInput } from "../utils/terminal";
+import { argsToString, mstosec, truncate } from "../utils/misc";
+import { getJSON, mkdirSync } from "../utils/file";
 import { downloadImage } from "../utils/image";
-import { mkdirSync } from "../utils/file";
 import { Media, Vendor } from "../types";
-import { truncate } from "../utils/misc";
+
 import { log } from "console";
 
 import dotenv from "dotenv";
 import axios from "axios";
+import path from "path";
+import fs from "fs";
 
 dotenv.config();
 
@@ -33,10 +37,14 @@ enum GenerationType {
  * @see https://doc.goapi.ai/midjourney-api/midjourney-task-result
  * @see https://builtopia.feishu.cn/wiki/IRZUwdEsfiNNfak6sSKcgGTPnFY (for `image_urls`)
  * @see https://docs.midjourney.com/docs/image-prompts
+ * 
+ * @note You can use `startIndex` to pick up where a full all-scene generation left off if
+ * 		 a random error stopped the complete list of images from being generated.
  */
 export const generate = async (
 	name: string,
-	prompts: JSONPromptData,
+	imagines: JSONPromptData,
+	startIndex = 0,
 	type = Media.Image,
 	vendor = Vendor.Midjourney
 ): Promise<void> => {
@@ -46,64 +54,121 @@ export const generate = async (
 			switch (vendor) {
 				default:
 				case Vendor.Midjourney: {
-					const { visualise } = prompts;
+					const { visualise } = imagines;
 
 					const folder = mkdirSync(`./bin/image/${name}`);
-					const results: string[] = [];
+					const results: string[] = startIndex > 0 ? getJSON<string[]>(`./bin/image/${name}/results.json`) : [];
 
-					async function imagine(visualise: string[]) {
-						for (let i = 0; i < visualise.length; i++) {
-							// The previous image generated will feed into the next one for more consistent styling per image
-							const previous: string = i > 0 ? `${results[i - 1]} ` : "";
+					for (let i = startIndex; i < visualise.length; i++) {
+						// Note: not using previous by default as it can create undesirable results; however, you
+						// can still use it via opt-in with the `image/parse` command (see docs for details)
+						const { previous, args } = genDefaultImagineArgs(i, results);
 
-							log(`imagining ${i}: ${previous + truncate(visualise[i])}`);
+						log(`imagining ${i}: ${argsToString([truncate(visualise[i]), args])}`);
 
-							// Imagine
-							const options_imagine = { ...options };
-							options_imagine.data.prompt = `${previous} ${visualise[i]}`;
+						const image = await gen(
+							i,
+							folder,
+							argsToString([visualise[i], args])
+						);
 
-							const imagine = await axios<MidjourneyGeneralResponse>(options_imagine);
-							const fetch_imagine = await getTaskResult(i, GenerationType.Imagine, imagine.data.task_id, domain);
+						// Override existing result for a former index, or push for the latest
+						results[i] = image;
 
-							log(`fetched imagine ${i}: ${fetch_imagine.task_id}`);
+						await downloadImage(image, `${folder}/image-${i}.png`);
 
-							// Upscale
-							const options_upscale = { ...options };
-							options_upscale.data.origin_task_id = fetch_imagine.task_id;
-							options_upscale.data.index = 1; // First image in x4 grid
+						log(`downloaded image ${i}: ${image}`);
 
-							const upscale = await axios<MidjourneyGeneralResponse>(options_upscale);
-							const fetch_upscale = await getTaskResult(i, GenerationType.Upscale, upscale.data.task_id, domain);
-
-							log(`fetched upscale ${i}: ${fetch_upscale.task_id}`);
-
-							// Add single upscaled image to result for this scene
-							const image = fetch_upscale.task_result.image_url;
-							results.push(image);
-
-							log(`downloading image ${i}: ${image}`);
-
-							await downloadImage(image, `${folder}/image-${i}.png`);
-						}
+						// Write the resulting image url to a JSON file for reference, or for re-creating specific images (via `image/parse`)
+						// The reason we write per visual is to have this file present in the event of a failure halfway through, so we can pick up where we left off
+						await fs.promises.writeFile(path.resolve(`./bin/image/${name}/results.json`), JSON.stringify(results));
 					}
-
-					await imagine(visualise);
 				}
 			}
 		}
 	}
 }
 
-const options: Record<string, any> = {
+export const gen = async (
+	index: number,
+	folder: string,
+	prompt: string,
+	review_wait_time: number = 20000
+): Promise<string> => {
+
+	// Imagine
+	const options_imagine = options({
+		aspect_ratio: "16:9",
+		process_mode: "fast",
+	});
+	options_imagine.data.prompt = prompt;
+
+	const imagine = await axios<MidjourneyGeneralResponse>(options_imagine);
+	const fetch_imagine = await getTaskResult(
+		index,
+		GenerationType.Imagine,
+		imagine.data.task_id,
+		domain
+	);
+
+	log(`fetched imagine ${index}: ${fetch_imagine.task_id}`);
+
+	// Give us time to review the image before the upscale commences (handy for spot creations and cancels for undesired results)
+	log(`review the image in ${mstosec(review_wait_time)}s before upscale: ${fetch_imagine.task_result.image_url}`);
+	openInBrowser(fetch_imagine.task_result.image_url);
+
+	// Prompt index to select 1/4 images from Midjourney after a review (1 is the default; top-left)
+	const imagine_index = (await promptForInput("Enter an index if required (1 is the default)")) || "1";
+
+	// Upscale to isolate one image from index 1 of 4 (default for 16:9 last seen was "1456×816")
+	let options_upscale = options({
+		origin_task_id: fetch_imagine.task_id,
+		index: imagine_index,
+	}, GenerationType.Upscale);
+
+	log(`proceeding to upscale image index: ${imagine_index}`);
+
+	let upscale = await axios<MidjourneyGeneralResponse>(options_upscale);
+	let fetch_upscale = await getTaskResult(
+		index,
+		GenerationType.Upscale,
+		upscale.data.task_id,
+		domain
+	);
+
+	log(`fetched upscale #1 ${index}: ${fetch_upscale.task_id}`);
+
+	// Upscale again to get the resolution we want (per the default 16:9 above, it'll double to: "2912×1632")
+	options_upscale = options({
+		origin_task_id: fetch_upscale.task_id,
+		index: Upscale.Subtle,
+	}, GenerationType.Upscale);
+
+	upscale = await axios<MidjourneyGeneralResponse>(options_upscale);
+	fetch_upscale = await getTaskResult(
+		index,
+		GenerationType.Upscale,
+		upscale.data.task_id,
+		domain
+	);
+
+	log(`fetched upscale #2 ${index}: ${fetch_upscale.task_id}`);
+
+	// Add single upscaled image to result for this scene
+	const image = fetch_upscale.task_result.image_url;
+
+	log(`downloading image ${index}: ${image}`);
+
+	await downloadImage(image, `${folder}/image-${index}.png`);
+
+	return image;
+}
+
+const options = (data: Record<string, any>, service = GenerationType.Imagine): Record<string, any> => ({
 	headers: {
 		"X-API-KEY": process.env.GOAPI_API_KEY
 	},
-	data: {
-		"aspect_ratio": "16:9",
-		"process_mode": "fast",
-		"webhook_endpoint": "",
-		"webhook_secret": ""
-	},
-	url: `${domain}/imagine`,
+	data,
+	url: `${domain}/${service}`,
 	method: 'post'
-};
+});

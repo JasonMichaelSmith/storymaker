@@ -5,9 +5,15 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"scripts/parse": "node dist/scripts/parse",
-		"video/stitch": "node dist/video/stitch",
 		"prompt/agnostic": "node dist/prompt/agnostic",
+		"scripts/spelling": "node dist/scripts/spelling",
+		"scripts/parse": "node dist/scripts/parse",
+		"image/videofy": "node dist/image/videofy",
+		"image/parse": "node dist/image/parse",
+		"video/screens": "node dist/video/screens",
+		"video/stitch": "node dist/video/stitch",
+		"video/finish": "node dist/video/finish",
+		"speech/parse": "node dist/speech/parse",
 		"build": "tsc"
 	},
 	"keywords": [],
